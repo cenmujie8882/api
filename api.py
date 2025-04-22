@@ -77,7 +77,7 @@ if __name__ == '__main__':
     # 获取本机IP
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
-    print(f"Server starting on {local_ip}:5901")
+    print(f"Server starting on {local_ip}:980")
     
     # 启动服务器
-    app.run(host='0.0.0.0', port=5901, debug=True)
+    app.run(host='0.0.0.0', port=980, debug=True)
