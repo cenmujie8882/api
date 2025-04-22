@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import subprocess
 import logging
+import socket
 
 # 配置日志
 logging.basicConfig(level=logging.DEBUG)
@@ -54,51 +55,13 @@ def attack():
         return jsonify({"status": "error", "msg": "Unsupported method"}), 400
 
     logger.info(f"Executing command: {' '.join(cmd)}")
-
-    try:
-        # 使用 PIPE 来捕获输出，兼容旧版本 Python
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True
-        )
-        
-        try:
-            stdout, stderr = process.communicate(timeout=time + 10)
-            logger.info(f"Command completed with return code: {process.returncode}")
-            logger.debug(f"Command stdout: {stdout}")
-            logger.debug(f"Command stderr: {stderr}")
-            
-            # 对于 UDP 和 SYN flood 攻击，即使返回码不为 0 也认为是成功的
-            if "packets transmitted" in stdout or "packets transmitted" in stderr:
-                return jsonify({
-                    "status": "success",
-                    "output": stdout or stderr
-                })
-            else:
-                error_msg = f"Command failed with error: {stderr}"
-                logger.error(error_msg)
-                return jsonify({
-                    "status": "error",
-                    "msg": error_msg
-                }), 500
-
-        except subprocess.TimeoutExpired:
-            process.kill()
-            logger.info("Attack finished (timeout reached)")
-            return jsonify({
-                "status": "success",
-                "output": "Attack finished (timeout reached)."
-            })
-
-    except Exception as e:
-        error_msg = f"An error occurred: {str(e)}"
-        logger.error(error_msg, exc_info=True)
-        return jsonify({
-            "status": "error",
-            "msg": error_msg
-        }), 500
+    return jsonify({"status": "success", "msg": "Attack started"})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080) 
+    # 获取本机IP
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    print(f"Server starting on {local_ip}:8080")
+    
+    # 启动服务器
+    app.run(host='0.0.0.0', port=8080, debug=True)
